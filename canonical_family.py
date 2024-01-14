@@ -154,7 +154,7 @@ def draw_curve(u,v,w):
     x = sin(phi)*cos(theta)
     y = cos(phi)
     z = sin(phi)*sin(theta)
-    #mlab.mesh(x, y, z, color=(1,0.55,0))
+    mlab.mesh(x, y, z, color=(1,0.55,0))
 
     mlab.show()
 
@@ -166,8 +166,8 @@ def draw_canonical(u,v,w,t):
         return
     
     #Paramètre d'échantillonage
-    N_sphere = 200
-    N_gradient = 500
+    N_sphere = 300
+    N_gradient = 1000
     N_courbe = 1000
 
     #Calcul des points de la courbe avec échantillonage uniforme
@@ -186,7 +186,7 @@ def draw_canonical(u,v,w,t):
     new_s = interp(np.linspace(0, 1, N_courbe))
     X,Y,Z = curve(new_s)
     x,y,z = f(X,Y,Z,u,v,w)
-    mlab.plot3d(x, y, z, tube_radius=0.003, color=(0,0,1))
+    mlab.plot3d(x, y, z, tube_radius=0.003, color=(0,1,0))
 
     #Afficher les points v/|v| et -v/|v|
     mlab.points3d([u/r], [v/r], [w/r], resolution = 32, scale_factor=0.05, color=(1,1,1))
@@ -201,9 +201,9 @@ def draw_canonical(u,v,w,t):
 
     n,m = np.shape(X_sphere)
     d = np.zeros(np.shape(X_sphere))
-
     #Calcul de la distance d_v d'un point du maillage à la courbe \Sigma_v
     for i in range(n):
+        print("Progression : " + str(i+1) + "/" + str(n))
         for j in range(m):
             k0 = 0
             d[i,j] = np.arccos(X_sphere[i,j]*x[k0]+Y_sphere[i,j]*y[k0] + Z_sphere[i,j]*z[k0])
@@ -234,8 +234,8 @@ def draw_canonical(u,v,w,t):
     y = Y_sphere*e
     z = Z_sphere*e
 
-    mlab.mesh(x, y, z, color=(0.55,1,0))
+    mlab.mesh(x, y, z, color=(1,0.7,0))
 
     mlab.show()
 
-draw_canonical(0.8,0,0,-1)
+draw_canonical(0.4,0,0,-0.1)
