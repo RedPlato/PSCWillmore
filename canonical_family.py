@@ -108,7 +108,8 @@ def draw_sphere(u,v,w):
 
 def curve(t):
     theta = 2*np.pi*t
-    phi = np.pi/2 + np.cos(5*theta)/2
+    phi = np.pi/2 + np.sin(4*theta)/4
+
     X = np.sin(phi)*np.sin(theta)
     Y = np.sin(phi)*np.cos(theta)
     Z = np.cos(phi)
@@ -166,9 +167,9 @@ def draw_canonical(u,v,w,t):
         return
     
     #Paramètre d'échantillonage
-    N_sphere = 300
-    N_gradient = 1000
-    N_courbe = 1000
+    N_sphere = 100
+    N_gradient = 100
+    N_courbe = 100
 
     #Calcul des points de la courbe avec échantillonage uniforme
     s = np.linspace(0, 1, N_gradient)
@@ -201,6 +202,7 @@ def draw_canonical(u,v,w,t):
 
     n,m = np.shape(X_sphere)
     d = np.zeros(np.shape(X_sphere))
+
     #Calcul de la distance d_v d'un point du maillage à la courbe \Sigma_v
     for i in range(n):
         print("Progression : " + str(i+1) + "/" + str(n))
@@ -238,4 +240,38 @@ def draw_canonical(u,v,w,t):
 
     mlab.show()
 
-draw_canonical(0.4,0,0,-0.1)
+def draw_tubular(r):
+
+    N_courbe = 1000
+    N_sphere = 1000
+
+    kappa = 7
+
+    s = np.linspace(0, 1, N_courbe)
+    t = np.linspace(-0.65, 3.8, N_courbe)
+
+    X,Y,Z = curve(s)
+
+    mlab.plot3d(X, Y, Z, tube_radius=0.003, color=(0,1,0))
+
+    X1 = np.roll(X,1)
+    Y1 = np.roll(Y,1)
+    Z1 = np.roll(Z,1)
+    x0 = np.column_stack((X,Y,Z))
+    x1 = np.column_stack((X1,Y1,Z1))
+    N = np.cross(x1-x0,x0)
+    N = N / np.linalg.norm(N, axis=0)
+
+    cost = (1-r/kappa*np.sin(t))*np.cos(r*np.cos(t))
+    sint = (1-r/kappa*np.sin(t))*np.sin(r*np.cos(t))
+    
+    x = np.outer(cost,X) + np.outer(sint,N[:,0])
+    y = np.outer(cost,Y) + np.outer(sint,N[:,1])
+    z = np.outer(cost,Z) + np.outer(sint,N[:,2])
+
+    mlab.mesh(x, y, z, color=(1,1,0))
+    #mlab.quiver3d(X,Y,Z,N[:,0], N[:,1], N[:,2])
+    mlab.show()
+
+draw_tubular(0.3)
+
