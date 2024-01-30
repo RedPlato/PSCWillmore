@@ -103,7 +103,6 @@ def draw_sphere(u,v,w):
 
         mlab.plot3d(x, y, z, tube_radius=0.003, color=(1,1,1))
 
-
     mlab.show()
 
 def curve(t):
@@ -115,6 +114,24 @@ def curve(t):
     Z = np.cos(phi)
     return X,Y,Z
 
+def tangent(X,Y,Z):
+
+    N = len(X)
+    T_x, T_y, T_z = N*(X-np.append(X[1:],X[0])),N*(Y-np.append(Y[1:],Y[0])),N*(Z-np.append(Z[1:],Z[0]))
+    return T_x, T_y, T_z
+
+def normal(X,Y,Z):
+    T_x, T_y, T_z = tangent(X,Y,Z)
+    V = np.stack((X,Y,Z), axis=-1)
+    T = np.stack((T_x,T_y,T_z), axis=-1)
+    N = np.cross(V,T)
+    A,B,C = np.array([N[k][0] for k in range(len(N))]),np.array([N[k][1] for k in range(len(N))]),np.array([N[k][2] for k in range(len(N))])
+
+    A,B,C= (A-(A*X +B*Y + C*Z)*A),(B-(A*X +B*Y + C*Z)*B),(C-(A*X +B*Y + C*Z)*C)
+    norm= np.sqrt(A*A+B*B+C*C)
+    A,B,C = A/norm,B/norm,C/norm
+    return A,B,C
+    
 #Afficher image d'une courbe par f(.,.,.,u,v,w) sur mlab
 def draw_curve(u,v,w):
     r = np.sqrt(u**2 + v**2 + w**2)
@@ -130,7 +147,7 @@ def draw_curve(u,v,w):
     #Calcul des points de la courbe avec échantillonage uniforme
     s = np.linspace(0, 1, N_gradient)
     X,Y,Z = curve(s)
-    mlab.plot3d(X, Y, Z, tube_radius=0.003, color=(1,0,0))
+    mlab.plot3d(X, Y, Z, tube_radius=0.003, color=(1,0,0), line_width = 4.0)
     x,y,z = f(X,Y,Z,u,v,w)
 
     #Estimation des distance entre les images
@@ -144,6 +161,11 @@ def draw_curve(u,v,w):
     X,Y,Z = curve(new_t)
     x,y,z = f(X,Y,Z,u,v,w)
     mlab.plot3d(x, y, z, tube_radius=0.003, color=(0,1,0))
+    
+    #Affiichage de la normale
+    a,b,c = normal(x,y,z)
+    mlab.quiver3d(x,y,z,a,b,c,color = (0,0,0), line_width = 6.0)
+
 
     #Afficher les points v/|v| et -v/|v|
     mlab.points3d([u/r], [v/r], [w/r], resolution = 32, scale_factor=0.05, color=(1,1,1))
@@ -167,20 +189,20 @@ def draw_canonical(u,v,w,t):
         return
     
     #Paramètre d'échantillonage
-    N_sphere = 100
+    N_sphere = 1000
     N_gradient = 100
     N_courbe = 100
 
     #Calcul des points de la courbe avec échantillonage uniforme
     s = np.linspace(0, 1, N_gradient)
     X,Y,Z = curve(s)
-    mlab.plot3d(X, Y, Z, tube_radius=0.003, color=(1,0,0))
+    #mlab.plot3d(X, Y, Z, tube_radius=0.003, color=(1,0,0))
     x,y,z = f(X,Y,Z,u,v,w)
 
     #Estimation des distance entre les images
     d = np.sqrt((x-u)*(x-u) + (y-v)*(y-v) + (z-w)*(z-w))
     d /= np.sum(d) 
-    d = np.cumsum(d)
+    d = np.cumsum(d) 
 
     #Echantillonage non uniforme afin que les images soient régulièrement espacées
     interp = interp1d(s,d,kind='linear')
@@ -273,5 +295,4 @@ def draw_tubular(r):
     #mlab.quiver3d(X,Y,Z,N[:,0], N[:,1], N[:,2])
     mlab.show()
 
-draw_tubular(0.3)
-
+#draw_tubular(0.3)
