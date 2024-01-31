@@ -291,8 +291,119 @@ def draw_tubular(r):
     y = np.outer(cost,Y) + np.outer(sint,N[:,1])
     z = np.outer(cost,Z) + np.outer(sint,N[:,2])
 
+
+
     mlab.mesh(x, y, z, color=(1,1,0))
     #mlab.quiver3d(X,Y,Z,N[:,0], N[:,1], N[:,2])
     mlab.show()
 
-#draw_tubular(0.3)
+def plot_T():
+
+    e = 0.15
+    theta_lim = 0.5
+    N = 30
+    fig, ax = plt.subplots()
+
+    def function_phi(t):
+        return 0 if t <= e else 1 if t >= 2*e else t/e - 1
+
+    theta = np.linspace(-theta_lim, theta_lim, N)
+    X = np.sin(theta)
+    Y = np.cos(theta)
+
+    ax.plot(X,Y)
+
+    dr, dphi = e/5, pi/30
+    [r,phi] = mgrid[0:3*e:dr,0:pi+dphi/2:dphi]
+
+    s1 = r*np.sin(phi)
+    s2 = r*np.cos(phi)
+
+    X = (1-s1)*np.sin(s2)
+    Y = (1-s1)*np.cos(s2)
+
+    T_X = (1-s1*np.array(list(map(function_phi, r))))*np.sin(s2*np.array(list(map(function_phi, r))))
+    T_Y = (1-s1*np.array(list(map(function_phi, r))))*np.cos(s2*np.array(list(map(function_phi, r))))
+
+    color = np.sqrt(T_X**2 + T_Y**2) 
+
+    ax.quiver(X,Y,T_X,T_Y, color, scale=30)
+    ax.set_xlim([-0.5, 0.5])
+    ax.set_ylim([0.2, 1.3])
+    ax.xaxis.set_ticks([])
+    ax.yaxis.set_ticks([])
+
+    fig.set_size_inches(10, 10, forward=True)
+
+    plt.show()
+
+def plot_Q():
+
+    e = 0.1
+    theta_lim = 0.3
+    N = 30
+    N_radial = 20
+    N_angle = 15
+    scale = 70
+    width = 0.001
+
+    fig, ax = plt.subplots()
+
+    def function_phi(t):
+        return 0 if t <= e else 1 if t >= 2*e else t/e - 1
+
+    theta = np.linspace(-theta_lim, theta_lim, N)
+    X = np.sin(theta)
+    Y = np.cos(theta)
+
+    ax.plot(X,Y, color="slateblue",zorder=0)
+
+    theta = np.linspace(0,pi,N)
+    X = (1-e*np.sin(theta))*np.sin(e*np.cos(theta))
+    Y = (1-e*np.sin(theta))*np.cos(e*np.cos(theta))
+
+    ax.plot(X,Y, color="slateblue",zorder=0)
+
+    dr, dphi = e/N_radial, pi/N_angle
+    [r,phi] = mgrid[0:e:dr,0:pi+dphi/2:dphi]
+
+    s1 = r*np.sin(phi)
+    s2 = r*np.cos(phi)
+
+    X = (1-s1)*np.sin(s2)
+    Y = (1-s1)*np.cos(s2)
+
+    Q_X = -np.sqrt(1-s2*s2/(e*e))
+    Q_Y = -s2/e
+
+    color = np.arctan2(Q_X,Q_Y) 
+
+    ax.quiver(X,Y,Q_X,Q_Y, color, scale=scale, width = width, zorder=1)
+
+    s_ext = np.linspace(e, 3*e, 2*N_radial)
+
+    X = np.sin(s_ext)
+    Y = np.cos(s_ext)
+
+    T_X = np.sin(s_ext*np.array(list(map(function_phi, s_ext))))
+    T_Y = np.cos(s_ext*np.array(list(map(function_phi, s_ext))))
+
+    color = np.arctan2(-T_X,-T_Y)
+    color2 = np.arctan2(-T_X,T_Y)
+
+    ax.quiver(X,Y,-T_X,-T_Y, color, scale=scale, width = width, zorder=1)
+    ax.quiver(-X,Y,-T_X,T_Y, color2, scale=scale, width = width, zorder=1) 
+
+    ax.set_xlim([-0.4, 0.4])
+    ax.set_ylim([0.5, 1.3])
+    ax.xaxis.set_ticks([])
+    ax.yaxis.set_ticks([])
+
+
+    fig.set_size_inches(100, 100, forward=True)
+
+    plt.savefig('D:/antom/Desktop/PSC/Q.png')
+    plt.show()
+
+plot_Q()
+
