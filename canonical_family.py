@@ -270,8 +270,8 @@ def newdraw_canonical(u,v,w,t,eps):
     
     #Paramètre d'échantillonage
     N_sphere = 1000
-    N_gradient = 100
-    N_courbe = 100
+    N_gradient = 1000
+    N_courbe = 1000
 
     #Calcul des points de la courbe avec échantillonage uniforme
     s = np.linspace(0, 1, N_gradient)
@@ -296,21 +296,27 @@ def newdraw_canonical(u,v,w,t,eps):
     c_x, c_y, c_z = cos(t)*x +sin(t)*n_x, cos(t)*y +sin(t)*n_y, cos(t)*z +sin(t)*n_z
     C_0 = np.stack((c_x, c_y, c_z), axis = -1)
     C = C_0
-    for i in range(len(C)):
-        for j in range(len(x)):
-            d = d_geo(C_0[i][0],C_0[i][1],C_0[i][2],x[j],y[j],z[j])
+    i=0
+    while (i <len(C)):
+        j=0
+        flag = True
+        while (j < len(x)) and flag:
+            d = d_geo(C[i][0],C[i][1],C[i][2],x[j],y[j],z[j])
             if t>0:
                 if d< t-eps:
-                    C[i] = [0,0,0]
+                    C= np.delete(C, i ,0)
+                    flag = False
            
             else:
                 if -d> t+eps:
-                    C[i] = [0,0,0]
-            
-
+                    C= np.delete(C, i ,0)
+                    flag = False
+            j+=1
+        if flag:
+            i+=1
 
     c_x,c_y,c_z = np.array([C[k][0] for k in range(len(C))]),np.array([C[k][1] for k in range(len(C))]),np.array([C[k][2] for k in range(len(C))])
-    mlab.points3d(c_x, c_y, c_z, scale_factor = 0.01, color=(0,0,1))
+    mlab.plot3d(c_x, c_y, c_z, tube_radius=0.003, color=(0,0,1))
 
     #Afficher les points v/|v| et -v/|v|
     mlab.points3d([u/r], [v/r], [w/r], resolution = 32, scale_factor=0.05, color=(1,1,1))
@@ -473,5 +479,4 @@ def plot_Q():
     plt.savefig('D:/antom/Desktop/PSC/Q.png')
     plt.show()
 
-plot_Q()
 
