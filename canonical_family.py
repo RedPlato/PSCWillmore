@@ -262,6 +262,74 @@ def draw_canonical(u,v,w,t):
 
     mlab.show()
 
+def newdraw_canonical(u,v,w,t,eps):
+    r = np.sqrt(u**2 + v**2 + w**2)
+    if r > 1:
+        print("Error")
+        return
+    
+    #Paramètre d'échantillonage
+    N_sphere = 1000
+    N_gradient = 100
+    N_courbe = 100
+
+    #Calcul des points de la courbe avec échantillonage uniforme
+    s = np.linspace(0, 1, N_gradient)
+    X,Y,Z = curve(s)
+    #mlab.plot3d(X, Y, Z, tube_radius=0.003, color=(1,0,0))
+    x,y,z = f(X,Y,Z,u,v,w)
+
+    #Estimation des distance entre les images
+    d = np.sqrt((x-u)*(x-u) + (y-v)*(y-v) + (z-w)*(z-w))
+    d /= np.sum(d) 
+    d = np.cumsum(d) 
+
+    #Echantillonage non uniforme afin que les images soient régulièrement espacées
+    interp = interp1d(s,d,kind='linear')
+    new_s = interp(np.linspace(0, 1, N_courbe))
+    X,Y,Z = curve(new_s)
+    x,y,z = f(X,Y,Z,u,v,w)
+    mlab.plot3d(x, y, z, tube_radius=0.003, color=(0,1,0))
+    n_x, n_y, n_z = normal(x,y,z)
+
+    #Calcule de \Sigma_(v,t) par la géodésique
+    c_x, c_y, c_z = cos(t)*x +sin(t)*n_x, cos(t)*y +sin(t)*n_y, cos(t)*z +sin(t)*n_z
+    C_0 = np.stack((c_x, c_y, c_z), axis = -1)
+    C = C_0
+    for i in range(len(C)):
+        for j in range(len(x)):
+            d = d_geo(C_0[i][0],C_0[i][1],C_0[i][2],x[j],y[j],z[j])
+            if t>0:
+                if d< t-eps:
+                    C[i] = [0,0,0]
+           
+            else:
+                if -d> t+eps:
+                    C[i] = [0,0,0]
+            
+
+
+    c_x,c_y,c_z = np.array([C[k][0] for k in range(len(C))]),np.array([C[k][1] for k in range(len(C))]),np.array([C[k][2] for k in range(len(C))])
+    mlab.points3d(c_x, c_y, c_z, scale_factor = 0.01, color=(0,0,1))
+
+    #Afficher les points v/|v| et -v/|v|
+    mlab.points3d([u/r], [v/r], [w/r], resolution = 32, scale_factor=0.05, color=(1,1,1))
+    mlab.points3d([-u/r], [-v/r], [-w/r], resolution = 32, scale_factor=0.05, color=(0,0,0))
+
+
+    #Afficher la sphère
+    dphi, dtheta = pi/N_sphere, pi/N_sphere
+    [phi,theta] = mgrid[0:pi+dphi*1.5:dphi,0:2*pi+dtheta*1.5:dtheta]
+    x = sin(phi)*cos(theta)
+    y = cos(phi)
+    z = sin(phi)*sin(theta)
+    mlab.mesh(x, y, z, color=(1,0.55,0))
+
+
+
+
+
+    mlab.show()
 def draw_tubular(r):
 
     N_courbe = 1000
