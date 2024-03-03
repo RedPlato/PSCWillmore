@@ -356,11 +356,14 @@ def draw_tubular(r):
     x0 = np.column_stack((X,Y,Z))
     x1 = np.column_stack((X1,Y1,Z1))
     N = np.cross(x1-x0,x0)
-    N = N / np.linalg.norm(N, axis=0)
-
-    cost = (1-r/kappa*np.sin(t))*np.cos(r*np.cos(t))
-    sint = (1-r/kappa*np.sin(t))*np.sin(r*np.cos(t))
+    norm = np.linalg.norm(N, axis=1)
+    N[:,0] /= norm
+    N[:,1] /= norm
+    N[:,2] /= norm
     
+    cost = (1-r*np.sin(t))*np.cos(r*np.cos(t))
+    sint = (1-r*np.sin(t))*np.sin(r*np.cos(t))
+
     x = np.outer(cost,X) + np.outer(sint,N[:,0])
     y = np.outer(cost,Y) + np.outer(sint,N[:,1])
     z = np.outer(cost,Z) + np.outer(sint,N[:,2])
@@ -368,7 +371,7 @@ def draw_tubular(r):
 
 
     mlab.mesh(x, y, z, color=(1,1,0))
-    #mlab.quiver3d(X,Y,Z,N[:,0], N[:,1], N[:,2])
+    mlab.quiver3d(X[::5],Y[::5],Z[::5],N[::5,0], N[::5,1], N[::5,2])
     mlab.show()
 
 def plot_T():
@@ -479,4 +482,4 @@ def plot_Q():
     plt.savefig('D:/antom/Desktop/PSC/Q.png')
     plt.show()
 
-
+draw_tubular(0.3)
