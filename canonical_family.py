@@ -1,6 +1,7 @@
 import numpy as np
 from mayavi import mlab
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 from numpy import pi, sin, cos, mgrid
 from scipy import stats
 from scipy.interpolate import interp1d
@@ -336,6 +337,7 @@ def newdraw_canonical(u,v,w,t,eps):
 
 
     mlab.show()
+
 def draw_tubular(r):
 
     N_courbe = 1000
@@ -367,8 +369,6 @@ def draw_tubular(r):
     x = np.outer(cost,X) + np.outer(sint,N[:,0])
     y = np.outer(cost,Y) + np.outer(sint,N[:,1])
     z = np.outer(cost,Z) + np.outer(sint,N[:,2])
-
-
 
     mlab.mesh(x, y, z, color=(1,1,0))
     mlab.quiver3d(X[::5],Y[::5],Z[::5],N[::5,0], N[::5,1], N[::5,2])
@@ -482,4 +482,85 @@ def plot_Q():
     plt.savefig('D:/antom/Desktop/PSC/Q.png')
     plt.show()
 
-draw_tubular(0.3)
+def illustration_Q_tore():
+
+    scale_factor = 1
+
+    r0 =  scale_factor*1/3
+    r1 =  scale_factor*2
+    x1 = -0.8*scale_factor
+    x2 = 0.8*scale_factor
+    e =  scale_factor*0.3
+    N = 100
+    M = 10/scale_factor
+
+    theta = np.linspace(-np.pi, np.pi, N)
+    X1 = x1 + r0*np.sin(theta)
+    X2 = x2 + r0*np.sin(theta)
+    Y1 = np.cos(theta)/3*scale_factor
+    X3 = r1*np.sin(theta)
+    Y3 = r1*np.cos(theta) 
+    Z1 = 0*np.cos(theta)
+
+    fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+
+    ax.plot(X1,Y1,Z1, color="slateblue",zorder=0)
+    ax.plot(X2,Y1,Z1, color="slateblue",zorder=0)
+    ax.plot(X3,Y3,Z1, color="slateblue",zorder=0)
+
+
+
+    xlim = 3* scale_factor
+    ylim = 2* scale_factor
+    dx, dy = 1/M, 1/M
+    [X,Y] = mgrid[-xlim:xlim:dx,-ylim:ylim:dy]
+    n,m = np.shape(X)
+    Z = np.zeros(np.shape(X))
+    Qx = np.zeros(np.shape(X))
+    Qy = np.zeros(np.shape(X))
+    Qz = np.zeros(np.shape(X))
+
+    for i in range(n):
+        for j in range(m):
+            x = X[i,j]
+            y = Y[i,j]
+            if abs(np.sqrt((x-x1)**2 + y**2) - r0) < e: 
+                r = np.sqrt((x-x1)**2 + y**2)
+                s = r - r0
+                Qx[i,j] = -(x-x1)/r*np.sqrt(1-(s/e)**2)
+                Qy[i,j] = -y/r*np.sqrt(1-(s/e)**2)
+                Qz[i,j] = -s/e
+            elif abs(np.sqrt((x-x2)**2 + y**2) - r0) < e: 
+                r = np.sqrt((x-x2)**2 + y**2)
+                s = r - r0
+                Qx[i,j] = -(x-x2)/r*np.sqrt(1-(s/e)**2)
+                Qy[i,j] = -y/r*np.sqrt(1-(s/e)**2)
+                Qz[i,j] = -s/e
+            elif abs(np.sqrt(x**2 + y**2) - r1) < e: 
+                r = np.sqrt(x**2 + y**2)
+                s = r - r1
+                Qx[i,j] = x/r*np.sqrt(1-(s/e)**2)
+                Qy[i,j] = y/r*np.sqrt(1-(s/e)**2)
+                Qz[i,j] = s/e
+            elif np.sqrt(x**2 + y**2) > r1 or np.sqrt((x-x2)**2 + y**2) < r0 or np.sqrt((x-x1)**2 + y**2) < r0:
+                Qx[i,j] = 0
+                Qy[i,j] = 0
+                Qz[i,j] = 1
+            elif np.sqrt(x**2 + y**2) < r1:
+                Qx[i,j] = 0
+                Qy[i,j] = 0
+                Qz[i,j] = -1
+    
+    cmap = plt.cm.coolwarm
+    c = Qz.ravel()
+    c = np.concatenate((c, np.repeat(c, 2)))
+    ax.quiver(X,Y,Z,-Qx,-Qy,-Qz, color= cmap(c), length= scale_factor/10)
+    ax.set_axis_off()
+    ax.set_aspect('equal')
+    ax.set_proj_type('ortho')
+    plt.rcParams['savefig.dpi']=500
+
+    plt.show()
+
+
+illustration_Q_tore()
